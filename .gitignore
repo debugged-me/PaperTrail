@@ -1,0 +1,25 @@
+# PaperTrail
+
+# Dependencies
+frontend/node_modules/
+
+# Build output
+dist/
+
+# Uploaded receipts (keep dir, ignore contents)
+uploads/*
+!uploads/.gitkeep
+
+# Local Devin config (MCP exploration — not part of the app)
+.devin/
+
+# OS / editor
+.DS_Store
+*.swp
+
+# Env / secrets
+.env
+.env.local
+
+# Logs
+*.log

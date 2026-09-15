@@ -1,0 +1,10 @@
+/* src/index.css — global styles + fonts */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { margin: 0; padding: 0; min-height: 100vh; background: #F6F4EF; }
+body { -webkit-font-smoothing: antialiased; font-family: 'Instrument Sans', system-ui, sans-serif; }
+a { color: #0B6B57; text-decoration: none; }
+button { font-family: inherit; }
+input { font-family: inherit; }
+.boot { display: grid; place-items: center; min-height: 100vh; color: #6A7176; font-family: 'Instrument Sans', system-ui, sans-serif; }

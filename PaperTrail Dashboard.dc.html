@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PaperTrail Dashboard</title>
+  <script src="dc-runtime.js"></script>
+  <script src="support.js"></script>
+</head>
+<body>
+  <x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #F6F4EF; }
+  body { -webkit-font-smoothing: antialiased; }
+  a { color: #0B6B57; text-decoration: none; }
+  a:hover { color: #085243; text-decoration: underline; }
+  input, button, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  ::placeholder { color: #9AA0A4; }
+  @keyframes pt-spin { to { transform: rotate(360deg); } }
+  @keyframes pt-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pt-scan { 0% { transform: translateY(0); } 100% { transform: translateY(190px); } }
+  @keyframes pt-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+</style>
+</helmet>
+
+<div style="min-height: 100vh; background: #F6F4EF; font-family: 'Instrument Sans', system-ui, sans-serif; color: #14181B; letter-spacing: -0.006em;">
+
+  <header style="position: sticky; top: 0; z-index: 30; background: rgba(246,244,239,0.88); backdrop-filter: blur(10px); border-bottom: 1px solid #E3DED3;">
+    <div style="max-width: 1400px; margin: 0 auto; padding: 14px clamp(14px, 3vw, 32px); display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-right: auto;">
+        <div style="width: 32px; height: 32px; border-radius: 9px; background: #0B6B57; display: grid; place-items: center; box-shadow: 0 1px 2px rgba(11,107,87,.35);">
+          <svg width="18" height="18" sc-camel-view-box="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"></path><path d="M8 7h8"></path><path d="M8 11h8"></path><path d="M8 15h5"></path></svg>
+        </div>
+        <div style="display: flex; flex-direction: column; line-height: 1.05;">
+          <span style="font-size: 18px; font-weight: 600; letter-spacing: -0.03em;">PaperTrail</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #7B8288; letter-spacing: 0.06em; text-transform: uppercase;">Digital filing cabinet</span>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 4px; padding: 3px; background: #EDE9E0; border: 1px solid #E3DED3; border-radius: 10px;">
+        <button sc-camel-on-click="{{ setPersonal }}" style="background: {{ wsPersonalBg }}; box-shadow: {{ wsPersonalShadow }}; color: {{ wsPersonalFg }}; border: 0; border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500;">Personal</button>
+        <button sc-camel-on-click="{{ setBusiness }}" style="background: {{ wsBusinessBg }}; box-shadow: {{ wsBusinessShadow }}; color: {{ wsBusinessFg }}; border: 0; border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500;">Business</button>
+      </div>
+
+      <button sc-camel-on-click="{{ openUpload }}" style="display: inline-flex; align-items: center; gap: 8px; background: #0B6B57; color: #FFFFFF; border: 0; border-radius: 10px; padding: 10px 16px; font-size: 14px; font-weight: 600; box-shadow: 0 1px 2px rgba(11,107,87,.4), inset 0 1px 0 rgba(255,255,255,.12);" style-hover="background: #085243;">
+        <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m17 8-5-5-5 5"></path><path d="M12 3v15"></path></svg>
+        Quick Scan
+      </button>
+
+      <button style="width: 38px; height: 38px; border-radius: 10px; border: 1px solid #E3DED3; background: #FFFFFF; display: grid; place-items: center; color: #4A5258;" style-hover="border-color: #C9C2B4;" aria-label="Settings">
+        <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4h-7"></path><path d="M10 4H3"></path><path d="M21 12h-9"></path><path d="M8 12H3"></path><path d="M21 20h-5"></path><path d="M12 20H3"></path><circle cx="12" cy="4" r="2"></circle><circle cx="10" cy="12" r="2"></circle><circle cx="14" cy="20" r="2"></circle></svg>
+      </button>
+
+      <div style="display: flex; align-items: center; gap: 9px; padding-left: 4px;">
+        <div style="width: 36px; height: 36px; border-radius: 50%; background: #14181B; color: #F6F4EF; display: grid; place-items: center; font-size: 13px; font-weight: 600; letter-spacing: 0;">MR</div>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width: 1400px; margin: 0 auto; padding: clamp(16px, 3vw, 28px) clamp(14px, 3vw, 32px) 64px; display: flex; gap: clamp(14px, 2vw, 24px); align-items: flex-start; flex-wrap: wrap;">
+
+    <nav style="flex: 0 1 226px; min-width: 190px; position: sticky; top: 82px; display: flex; flex-direction: column; gap: 18px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 3px;">
+        <button sc-camel-on-click="{{ navDashboard }}" style="flex: 1 1 158px; display: flex; align-items: center; gap: 10px; background: {{ nav.dashBg }}; color: {{ nav.dashFg }}; border: 0; border-radius: 10px; padding: 9px 11px; font-size: 13.5px; font-weight: {{ nav.dashWeight }}; text-align: left;" style-hover="background: #EDE9E0;">
+          <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><rect width="7" height="9" x="3" y="3" rx="1"></rect><rect width="7" height="5" x="14" y="3" rx="1"></rect><rect width="7" height="9" x="14" y="12" rx="1"></rect><rect width="7" height="5" x="3" y="16" rx="1"></rect></svg>
+          Dashboard
+        </button>
+        <button sc-camel-on-click="{{ navReceipts }}" style="flex: 1 1 158px; display: flex; align-items: center; gap: 10px; background: {{ nav.recBg }}; color: {{ nav.recFg }}; border: 0; border-radius: 10px; padding: 9px 11px; font-size: 13.5px; font-weight: {{ nav.recWeight }}; text-align: left;" style-hover="background: #EDE9E0;">
+          <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"></path><path d="M8 11h8"></path><path d="M8 15h5"></path></svg>
+          Receipts
+          <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A9095;">{{ nav.recCount }}</span>
+        </button>
+        <button sc-camel-on-click="{{ navReview }}" style="flex: 1 1 158px; display: flex; align-items: center; gap: 10px; background: {{ nav.revBg }}; color: {{ nav.revFg }}; border: 0; border-radius: 10px; padding: 9px 11px; font-size: 13.5px; font-weight: {{ nav.revWeight }}; text-align: left;" style-hover="background: #EDE9E0;">
+          <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          Needs review
+          <span style="margin-left: auto; background: {{ nav.revBadgeBg }}; color: {{ nav.revBadgeFg }}; border-radius: 99px; padding: 1px 7px; font-family: 'IBM Plex Mono', monospace; font-size: 11px;">{{ nav.revCount }}</span>
+        </button>
+        <button sc-camel-on-click="{{ navCategories }}" style="flex: 1 1 158px; display: flex; align-items: center; gap: 10px; background: {{ nav.catBg }}; color: {{ nav.catFg }}; border: 0; border-radius: 10px; padding: 9px 11px; font-size: 13.5px; font-weight: {{ nav.catWeight }}; text-align: left;" style-hover="background: #EDE9E0;">
+          <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path><circle cx="7.5" cy="7.5" r=".5"></circle></svg>
+          Categories
+        </button>
+        <button sc-camel-on-click="{{ navReports }}" style="flex: 1 1 158px; display: flex; align-items: center; gap: 10px; background: {{ nav.repBg }}; color: {{ nav.repFg }}; border: 0; border-radius: 10px; padding: 9px 11px; font-size: 13.5px; font-weight: {{ nav.repWeight }}; text-align: left;" style-hover="background: #EDE9E0;">
+          <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
+          Reports
+        </button>
+        <button sc-camel-on-click="{{ navSettings }}" style="flex: 1 1 158px; display: flex; align-items: center; gap: 10px; background: {{ nav.setBg }}; color: {{ nav.setFg }}; border: 0; border-radius: 10px; padding: 9px 11px; font-size: 13.5px; font-weight: {{ nav.setWeight }}; text-align: left;" style-hover="background: #EDE9E0;">
+          <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M21 4h-7"></path><path d="M10 4H3"></path><path d="M21 12h-9"></path><path d="M8 12H3"></path><path d="M21 20h-5"></path><path d="M12 20H3"></path><circle cx="12" cy="4" r="2"></circle><circle cx="10" cy="12" r="2"></circle><circle cx="14" cy="20" r="2"></circle></svg>
+          Settings
+        </button>
+      </div>
+
+      <div style="border-top: 1px solid #E3DED3; padding-top: 16px;">
+        <div style="font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #8A9095;">Filing cabinet</div>
+        <div style="margin-top: 10px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #4A5258;">{{ nav.storageLabel }}</div>
+        <div style="height: 6px; border-radius: 99px; background: #E6E1D6; margin-top: 8px; overflow: hidden;">
+          <div style="width: {{ nav.storageWidth }}; height: 100%; border-radius: 99px; background: #0B6B57;"></div>
+        </div>
+        <div style="margin-top: 9px; font-size: 12px; color: #8A9095; text-wrap: pretty;">{{ nav.storageNote }}</div>
+      </div>
+    </nav>
+
+    <div style="flex: 1 1 620px; min-width: 0;">
+
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px;">
+      <div>
+        <h1 style="margin: 0; font-size: clamp(22px, 3.4vw, 30px); font-weight: 600; letter-spacing: -0.035em;">{{ greeting }}</h1>
+        <p style="margin: 5px 0 0; font-size: 14px; color: #6A7176; max-width: 56ch; text-wrap: pretty;">{{ subline }}</p>
+      </div>
+      <button sc-camel-on-click="{{ exportAll }}" style="display: inline-flex; align-items: center; gap: 8px; background: #FFFFFF; border: 1px solid #E3DED3; border-radius: 10px; padding: 9px 14px; font-size: 13px; font-weight: 500; color: #14181B;" style-hover="border-color: #C9C2B4; background: #FDFCFA;">
+        <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>
+        Export for tax season
+      </button>
+    </div>
+
+    <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 14px;">
+      <div style="background: #FFFFFF; border: 1px solid #E3DED3; border-radius: 14px; padding: 16px 18px;">
+        <div style="display: flex; align-items: center; gap: 7px; color: #6A7176; font-size: 12px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">
+          <svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h18"></path></svg>
+          Total this month
+        </div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: clamp(26px, 3.6vw, 34px); font-weight: 500; letter-spacing: -0.04em; margin-top: 10px;">{{ stats.total }}</div>
+        <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12.5px; color: {{ stats.deltaColor }};">
+          <svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 17 6.5-6.5 5 5L22 7"></path><path d="M16 7h6v6"></path></svg>
+          {{ stats.deltaLabel }}
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E3DED3; border-radius: 14px; padding: 16px 18px;">
+        <div style="color: #6A7176; font-size: 12px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Budget vs actual</div>
+        <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 10px; font-family: 'IBM Plex Mono', monospace;">
+          <span style="font-size: clamp(22px, 3vw, 27px); font-weight: 500; letter-spacing: -0.04em;">{{ stats.budgetPct }}%</span>
+          <span style="font-size: 13px; color: #7B8288;">of {{ stats.budgetCap }}</span>
+        </div>
+        <div style="height: 8px; border-radius: 99px; background: #EDE9E0; margin-top: 12px; overflow: hidden;">
+          <div style="width: {{ stats.budgetWidth }}; height: 100%; border-radius: 99px; background: {{ stats.budgetColor }};"></div>
+        </div>
+        <div style="margin-top: 8px; font-size: 12.5px; color: #6A7176;">{{ stats.budgetNote }}</div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E3DED3; border-radius: 14px; padding: 16px 18px;">
+        <div style="color: #6A7176; font-size: 12px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Tax-deductible</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: clamp(22px, 3vw, 27px); font-weight: 500; letter-spacing: -0.04em; margin-top: 10px;">{{ stats.deductible }}</div>
+        <div style="margin-top: 8px; font-size: 12.5px; color: #6A7176;">{{ stats.deductibleNote }}</div>
+        <div style="margin-top: 10px; height: 8px; border-radius: 99px; background: #EDE9E0; overflow: hidden;">
+          <div style="width: {{ stats.deductibleWidth }}; height: 100%; border-radius: 99px; background: #2A5C8A;"></div>
+        </div>
+      </div>
+
+      <div style="background: {{ attention.cardBg }}; border: 1px solid {{ attention.cardBorder }}; border-radius: 14px; padding: 16px 18px;">
+        <div style="display: flex; align-items: center; gap: 7px; color: {{ attention.labelColor }}; font-size: 12px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">
+          <svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          Needs attention
+        </div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: clamp(22px, 3vw, 27px); font-weight: 500; letter-spacing: -0.04em; margin-top: 10px;">{{ attention.count }}</div>
+        <div style="margin-top: 6px; font-size: 12.5px; color: #6A7176;">{{ attention.note }}</div>
+        <button sc-camel-on-click="{{ reviewAttention }}" style="margin-top: 10px; background: transparent; border: 1px solid {{ attention.btnBorder }}; color: {{ attention.btnColor }}; border-radius: 8px; padding: 6px 11px; font-size: 12.5px; font-weight: 600;">{{ attention.btnLabel }}</button>
+      </div>
+    </section>
+
+    <div style="display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap;">
+
+      <section style="flex: 3 1 540px; min-width: 0; background: #FFFFFF; border: 1px solid #E3DED3; border-radius: 16px; overflow: hidden;">
+        <div style="padding: 14px 16px; border-bottom: 1px solid #EDE9E0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <div style="position: relative; flex: 1 1 220px; min-width: 0;">
+            <span style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #8A9095; display: grid;">
+              <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            </span>
+            <input value="{{ query }}" sc-camel-on-change="{{ onQuery }}" placeholder="Search merchant, category, amount…" style="width: 100%; padding: 9px 12px 9px 34px; border: 1px solid #E3DED3; border-radius: 10px; background: #FBFAF7; font-size: 13.5px; outline: none;" style-focus="border-color: #0B6B57; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(11,107,87,.12);">
+          </div>
+          <div style="display: flex; align-items: center; gap: 3px; padding: 3px; background: #F1EEE7; border-radius: 9px;">
+            <button sc-camel-on-click="{{ setTable }}" style="background: {{ tableBg }}; box-shadow: {{ tableShadow }}; color: {{ tableFg }}; border: 0; border-radius: 7px; padding: 6px 9px; display: grid; place-items: center;" aria-label="Table view">
+              <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
+            </button>
+            <button sc-camel-on-click="{{ setGrid }}" style="background: {{ gridBg }}; box-shadow: {{ gridShadow }}; color: {{ gridFg }}; border: 0; border-radius: 7px; padding: 6px 9px; display: grid; place-items: center;" aria-label="Grid view">
+              <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>
+            </button>
+          </div>
+        </div>
+
+        <div style="padding: 11px 16px; border-bottom: 1px solid #EDE9E0; display: flex; gap: 7px; flex-wrap: wrap; align-items: center;">
+          <sc-for list="{{ chips }}" as="chip" hint-placeholder-count="5">
+            <button sc-camel-on-click="{{ chip.onClick }}" style="background: {{ chip.bg }}; color: {{ chip.fg }}; border: 1px solid {{ chip.border }}; border-radius: 99px; padding: 5px 12px; font-size: 12.5px; font-weight: 500;">{{ chip.label }}</button>
+          </sc-for>
+          <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #8A9095;">{{ resultLabel }}</span>
+        </div>
+
+        <sc-if value="{{ isTable }}" hint-placeholder-val="{{ true }}">
+          <div style="overflow-x: auto;">
+            <div style="min-width: 520px;">
+              <div style="display: grid; grid-template-columns: minmax(150px, 2.2fr) 112px minmax(110px, 1fr) 118px 40px; gap: 10px; padding: 9px 16px; border-bottom: 1px solid #EDE9E0; background: #FBFAF7; font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #6A7176;">
+                <button sc-camel-on-click="{{ sortByMerchant }}" style="background: none; border: 0; padding: 0; text-align: left; font: inherit; color: inherit; display: flex; align-items: center; gap: 4px;">Merchant {{ arrowMerchant }}</button>
+                <button sc-camel-on-click="{{ sortByDate }}" style="background: none; border: 0; padding: 0; text-align: left; font: inherit; color: inherit; display: flex; align-items: center; gap: 4px;">Date {{ arrowDate }}</button>
+                <button sc-camel-on-click="{{ sortByCategory }}" style="background: none; border: 0; padding: 0; text-align: left; font: inherit; color: inherit; display: flex; align-items: center; gap: 4px;">Category {{ arrowCategory }}</button>
+                <button sc-camel-on-click="{{ sortByAmount }}" style="background: none; border: 0; padding: 0; text-align: right; font: inherit; color: inherit; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">Amount {{ arrowAmount }}</button>
+                <span></span>
+              </div>
+              <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+                <div style="display: grid; grid-template-columns: minmax(150px, 2.2fr) 112px minmax(110px, 1fr) 118px 40px; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #F2EFE9; align-items: center;" style-hover="background: #FBFAF7;">
+                  <button sc-camel-on-click="{{ r.onOpen }}" style="background: none; border: 0; padding: 0; text-align: left; display: flex; align-items: center; gap: 11px; min-width: 0;">
+                    <span style="width: 30px; height: 36px; border-radius: 5px; background: {{ r.tint }}; border: 1px solid {{ r.tintBorder }}; display: grid; place-items: center; flex: none; color: {{ r.catColor }};">
+                      <svg width="14" height="14" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"></path><path d="M8 11h8"></path><path d="M8 15h5"></path></svg>
+                    </span>
+                    <span style="min-width: 0;">
+                      <span style="display: block; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ r.merchant }}</span>
+                      <span style="display: block; font-size: 11.5px; color: #8A9095; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ r.meta }}</span>
+                    </span>
+                  </button>
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: #4A5258;">{{ r.dateFmt }}</span>
+                  <span>
+                    <span style="display: inline-flex; align-items: center; gap: 6px; background: {{ r.tint }}; color: {{ r.catColor }}; border: 1px solid {{ r.tintBorder }}; border-radius: 99px; padding: 3px 10px; font-size: 12px; font-weight: 500;">{{ r.catLabel }}</span>
+                  </span>
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500; text-align: right; letter-spacing: -0.02em;">{{ r.amountFmt }}</span>
+                  <button sc-camel-on-click="{{ r.onDelete }}" style="background: none; border: 0; padding: 6px; border-radius: 7px; color: #9AA0A4; display: grid; place-items: center;" style-hover="color: #B3261E; background: #FBEFEE;" aria-label="Delete receipt">
+                    <svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isGrid }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px;">
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+              <button sc-camel-on-click="{{ r.onOpen }}" style="text-align: left; background: #FFFFFF; border: 1px solid #E3DED3; border-radius: 13px; padding: 0; overflow: hidden; display: block;" style-hover="border-color: #C9C2B4; box-shadow: 0 6px 18px rgba(20,24,27,.07);">
+                <span style="display: block; height: 108px; background: #F1EEE7; border-bottom: 1px solid #E3DED3; padding: 12px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: #6A7176; line-height: 1.55; overflow: hidden;">
+                  <span style="display: block; font-weight: 600; color: #14181B; letter-spacing: 0.06em;">{{ r.merchantUpper }}</span>
+                  <span style="display: block;">{{ r.dateFmt }}  ·  {{ r.payment }}</span>
+                  <span style="display: block; margin-top: 4px; border-top: 1px dashed #C9C2B4; padding-top: 4px;">{{ r.lineOne }}</span>
+                  <span style="display: block;">{{ r.lineTwo }}</span>
+                  <span style="display: block; margin-top: 3px; border-top: 1px dashed #C9C2B4; padding-top: 3px; color: #14181B; font-weight: 600;">TOTAL {{ r.amountFmt }}</span>
+                </span>
+                <span style="display: block; padding: 11px 13px 13px;">
+                  <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <span style="font-size: 13.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ r.merchant }}</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; font-weight: 500;">{{ r.amountFmt }}</span>
+                  </span>
+                  <span style="display: flex; align-items: center; gap: 7px; margin-top: 8px;">
+                    <span style="display: inline-flex; background: {{ r.tint }}; color: {{ r.catColor }}; border: 1px solid {{ r.tintBorder }}; border-radius: 99px; padding: 2px 9px; font-size: 11.5px; font-weight: 500;">{{ r.catLabel }}</span>
+                    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #8A9095;">{{ r.dateFmt }}</span>
+                  </span>
+                </span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 56px 24px; text-align: center;">
+            <div style="width: 44px; height: 44px; margin: 0 auto 14px; border-radius: 12px; background: #F1EEE7; display: grid; place-items: center; color: #8A9095;">
+              <svg width="20" height="20" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            </div>
+            <div style="font-size: 15px; font-weight: 600;">No receipts match</div>
+            <div style="margin-top: 5px; font-size: 13.5px; color: #6A7176;">Try a different search or clear the filters.</div>
+            <button sc-camel-on-click="{{ clearFilters }}" style="margin-top: 14px; background: #14181B; color: #FFFFFF; border: 0; border-radius: 9px; padding: 8px 15px; font-size: 13px; font-weight: 500;">Clear filters</button>
+          </div>
+        </sc-if>
+      </section>
+
+      <aside style="flex: 1 1 290px; min-width: 0; display: flex; flex-direction: column; gap: 14px;">
+        <div style="background: #FFFFFF; border: 1px solid #E3DED3; border-radius: 16px; padding: 16px 18px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+            <h2 style="margin: 0; font-size: 14.5px; font-weight: 600;">Spend by category</h2>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8A9095;">vs budget</span>
+          </div>
+          <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 13px;">
+            <sc-for list="{{ catRows }}" as="c" hint-placeholder-count="4">
+              <div>
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: 13px;">
+                  <span style="display: inline-flex; align-items: center; gap: 7px;">
+                    <span style="width: 8px; height: 8px; border-radius: 3px; background: {{ c.color }};"></span>
+                    {{ c.name }}
+                  </span>
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: {{ c.textColor }};">{{ c.spent }} / {{ c.budget }}</span>
+                </div>
+                <div style="height: 7px; border-radius: 99px; background: #F1EEE7; margin-top: 7px; overflow: hidden;">
+                  <div style="width: {{ c.width }}; height: 100%; border-radius: 99px; background: {{ c.color }};"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E3DED3; border-radius: 16px; padding: 16px 18px;">
+          <h2 style="margin: 0; font-size: 14.5px; font-weight: 600;">Month over month</h2>
+          <div style="margin-top: 16px; display: flex; align-items: flex-end; gap: 8px; height: 104px;">
+            <sc-for list="{{ months }}" as="m" hint-placeholder-count="6">
+              <div style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: 0;">
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: {{ m.valueColor }};">{{ m.short }}</span>
+                <div style="width: 100%; height: {{ m.height }}; border-radius: 5px 5px 2px 2px; background: {{ m.color }};"></div>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #8A9095;">{{ m.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background: #14181B; color: #F6F4EF; border-radius: 16px; padding: 17px 18px;">
+          <h2 style="margin: 0; font-size: 14.5px; font-weight: 600;">Tax season, sorted</h2>
+          <p style="margin: 7px 0 0; font-size: 13px; color: #B9BEC1; text-wrap: pretty;">{{ exportNote }}</p>
+          <div style="display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;">
+            <button sc-camel-on-click="{{ exportAll }}" style="flex: 1 1 auto; background: #0B6B57; color: #FFFFFF; border: 0; border-radius: 9px; padding: 9px 13px; font-size: 13px; font-weight: 600;">Export CSV</button>
+            <button sc-camel-on-click="{{ exportAll }}" style="flex: 1 1 auto; background: rgba(255,255,255,.1); color: #F6F4EF; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; padding: 9px 13px; font-size: 13px; font-weight: 500;">PDF pack</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div></main>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 70; display: flex; align-items: center; gap: 14px; background: #14181B; color: #F6F4EF; border-radius: 12px; padding: 12px 14px 12px 16px; box-shadow: 0 12px 34px rgba(20,24,27,.28); animation: pt-rise .18s ease-out; max-width: calc(100vw - 32px);">
+      <span style="font-size: 13.5px;">{{ toastText }}</span>
+      <sc-if value="{{ canUndo }}" hint-placeholder-val="{{ true }}">
+        <button sc-camel-on-click="{{ undoDelete }}" style="background: transparent; border: 1px solid rgba(255,255,255,.25); color: #F6F4EF; border-radius: 8px; padding: 5px 11px; font-size: 12.5px; font-weight: 600;">Undo</button>
+      </sc-if>
+      <button sc-camel-on-click="{{ dismissToast }}" style="background: none; border: 0; color: #9AA0A4; padding: 3px; display: grid;" aria-label="Dismiss">
+        <svg width="15" height="15" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      </button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ uploadOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; z-index: 60; background: rgba(20,24,27,.55); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 18px; overflow-y: auto;">
+      <div style="width: 100%; max-width: 620px; background: #FFFFFF; border-radius: 18px; box-shadow: 0 24px 60px rgba(20,24,27,.3); overflow: hidden; animation: pt-rise .2s ease-out;">
+        <div style="padding: 16px 18px; border-bottom: 1px solid #EDE9E0; display: flex; align-items: center; gap: 12px;">
+          <div style="margin-right: auto;">
+            <div style="font-size: 15.5px; font-weight: 600;">Add a receipt</div>
+            <div style="font-size: 12.5px; color: #6A7176; margin-top: 2px;">{{ uploadSubtitle }}</div>
+          </div>
+          <button sc-camel-on-click="{{ closeUpload }}" style="width: 32px; height: 32px; border-radius: 9px; border: 1px solid #E3DED3; background: #FFFFFF; color: #4A5258; display: grid; place-items: center;" style-hover="background: #F6F4EF;" aria-label="Close">
+            <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+          </button>
+        </div>
+
+        <sc-if value="{{ showPicker }}" hint-placeholder-val="{{ true }}">
+          <div style="padding: 16px 18px 20px;">
+            <div style="display: flex; gap: 3px; padding: 3px; background: #F1EEE7; border-radius: 10px; width: fit-content;">
+              <button sc-camel-on-click="{{ setDropMode }}" style="background: {{ dropTabBg }}; box-shadow: {{ dropTabShadow }}; color: {{ dropTabFg }}; border: 0; border-radius: 8px; padding: 7px 13px; font-size: 13px; font-weight: 500;">Upload file</button>
+              <button sc-camel-on-click="{{ setCamMode }}" style="background: {{ camTabBg }}; box-shadow: {{ camTabShadow }}; color: {{ camTabFg }}; border: 0; border-radius: 8px; padding: 7px 13px; font-size: 13px; font-weight: 500;">Use camera</button>
+            </div>
+
+            <sc-if value="{{ isDropMode }}" hint-placeholder-val="{{ true }}">
+              <div sc-camel-on-click="{{ startExtract }}" style="margin-top: 14px; border: 2px dashed #CFC8B9; border-radius: 14px; background: #FBFAF7; padding: 40px 22px; text-align: center; cursor: pointer;" style-hover="border-color: #0B6B57; background: #F4F8F6;">
+                <div style="width: 48px; height: 48px; margin: 0 auto 14px; border-radius: 13px; background: #E6F0EC; color: #0B6B57; display: grid; place-items: center;">
+                  <svg width="22" height="22" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m17 8-5-5-5 5"></path><path d="M12 3v15"></path></svg>
+                </div>
+                <div style="font-size: 15px; font-weight: 600;">Drag a receipt here</div>
+                <div style="margin-top: 5px; font-size: 13px; color: #6A7176;">or <span style="color: #0B6B57; font-weight: 600;">browse your files</span></div>
+                <div style="margin-top: 14px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #9AA0A4; letter-spacing: 0.02em;">JPG · PNG · PDF · HEIC — up to 10 MB</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isCamMode }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top: 14px;">
+                <div style="position: relative; border-radius: 14px; background: #1C2124; height: 250px; overflow: hidden; display: grid; place-items: center;">
+                  <div style="position: absolute; inset: 26px; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(246,244,239,.18);"></div>
+                  <div style="position: absolute; left: 26px; top: 26px; width: 30px; height: 30px; border-left: 3px solid #0B6B57; border-top: 3px solid #0B6B57; border-radius: 6px 0 0 0;"></div>
+                  <div style="position: absolute; right: 26px; top: 26px; width: 30px; height: 30px; border-right: 3px solid #0B6B57; border-top: 3px solid #0B6B57; border-radius: 0 6px 0 0;"></div>
+                  <div style="position: absolute; left: 26px; bottom: 26px; width: 30px; height: 30px; border-left: 3px solid #0B6B57; border-bottom: 3px solid #0B6B57; border-radius: 0 0 0 6px;"></div>
+                  <div style="position: absolute; right: 26px; bottom: 26px; width: 30px; height: 30px; border-right: 3px solid #0B6B57; border-bottom: 3px solid #0B6B57; border-radius: 0 0 6px 0;"></div>
+                  <div style="position: absolute; left: 26px; right: 26px; top: 30px; height: 2px; background: linear-gradient(90deg, transparent, #0B6B57, transparent); animation: pt-scan 2.4s ease-in-out infinite alternate;"></div>
+                  <div style="position: relative; text-align: center; color: #B9BEC1; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.04em;">
+                    <div style="width: 36px; height: 36px; margin: 0 auto 10px; display: grid; place-items: center; color: #6C7478;">
+                      <svg width="26" height="26" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+                    </div>
+                    ALIGN RECEIPT INSIDE THE FRAME
+                  </div>
+                </div>
+                <button sc-camel-on-click="{{ startExtract }}" style="margin-top: 14px; width: 100%; background: #0B6B57; color: #FFFFFF; border: 0; border-radius: 11px; padding: 13px; font-size: 14.5px; font-weight: 600;" style-hover="background: #085243;">Capture receipt</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ extracting }}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 30px 22px 26px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="width: 34px; height: 34px; border-radius: 50%; border: 3px solid #E6F0EC; border-top-color: #0B6B57; animation: pt-spin .8s linear infinite; flex: none;"></div>
+              <div>
+                <div style="font-size: 15.5px; font-weight: 600;">Extracting receipt data…</div>
+                <div style="font-size: 12.5px; color: #6A7176; margin-top: 3px; font-family: 'IBM Plex Mono', monospace;">{{ extractStatus }}</div>
+              </div>
+            </div>
+            <div style="height: 7px; border-radius: 99px; background: #F1EEE7; margin-top: 20px; overflow: hidden;">
+              <div style="width: {{ extractWidth }}; height: 100%; background: #0B6B57; border-radius: 99px; transition: width .4s ease;"></div>
+            </div>
+            <div style="margin-top: 18px; display: flex; flex-direction: column; gap: 9px;">
+              <sc-for list="{{ extractSteps }}" as="s" hint-placeholder-count="4">
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: {{ s.color }};">
+                  <span style="width: 18px; height: 18px; border-radius: 50%; background: {{ s.dotBg }}; color: {{ s.dotFg }}; display: grid; place-items: center; flex: none;">
+                    <svg width="11" height="11" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                  </span>
+                  {{ s.label }}
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ detailOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; inset: 0; z-index: 65; background: rgba(20,24,27,.55); backdrop-filter: blur(3px); display: flex; align-items: flex-start; justify-content: center; padding: clamp(10px, 3vw, 34px); overflow-y: auto;">
+      <div style="width: 100%; max-width: 980px; background: #FFFFFF; border-radius: 18px; box-shadow: 0 24px 60px rgba(20,24,27,.3); overflow: hidden; animation: pt-rise .2s ease-out;">
+        <div style="padding: 15px 18px; border-bottom: 1px solid #EDE9E0; display: flex; align-items: center; gap: 12px;">
+          <div style="margin-right: auto; min-width: 0;">
+            <div style="font-size: 15.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ detailTitle }}</div>
+            <div style="font-size: 12.5px; color: #6A7176; margin-top: 2px;">{{ detailSubtitle }}</div>
+          </div>
+          <button sc-camel-on-click="{{ closeDetail }}" style="width: 32px; height: 32px; border-radius: 9px; border: 1px solid #E3DED3; background: #FFFFFF; color: #4A5258; display: grid; place-items: center;" style-hover="background: #F6F4EF;" aria-label="Close">
+            <svg width="16" height="16" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+          </button>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; align-items: stretch;">
+          <div style="flex: 1 1 330px; min-width: 0; background: #EDEAE2; border-right: 1px solid #E3DED3; padding: clamp(16px, 3vw, 28px); display: flex; flex-direction: column; gap: 14px;">
+            <div style="background: #FFFEFB; border-radius: 3px; box-shadow: 0 10px 26px rgba(20,24,27,.14); padding: 22px 20px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: #3A4146; line-height: 1.7;">
+              <div style="text-align: center; letter-spacing: 0.12em; font-weight: 600; color: #14181B; font-size: 12.5px;">{{ draft.merchantUpper }}</div>
+              <div style="text-align: center; font-size: 10px; color: #7B8288; margin-top: 3px;">{{ draft.address }}</div>
+              <div style="border-top: 1px dashed #C9C2B4; margin: 13px 0 10px;"></div>
+              <sc-for list="{{ draft.items }}" as="it" hint-placeholder-count="4">
+                <div style="display: flex; justify-content: space-between; gap: 12px;">
+                  <span>{{ it.name }}</span>
+                  <span>{{ it.price }}</span>
+                </div>
+              </sc-for>
+              <div style="border-top: 1px dashed #C9C2B4; margin: 10px 0;"></div>
+              <div style="display: flex; justify-content: space-between;"><span>SUBTOTAL</span><span>{{ draft.subtotalFmt }}</span></div>
+              <div style="display: flex; justify-content: space-between;"><span>TAX</span><span>{{ draft.taxFmt }}</span></div>
+              <div style="display: flex; justify-content: space-between; font-weight: 600; color: #14181B; font-size: 13px; margin-top: 4px;"><span>TOTAL</span><span>{{ draft.totalFmt }}</span></div>
+              <div style="border-top: 1px dashed #C9C2B4; margin: 11px 0 8px;"></div>
+              <div style="font-size: 10px; color: #7B8288;">{{ draft.dateLine }}</div>
+              <div style="font-size: 10px; color: #7B8288;">{{ draft.payLine }}</div>
+              <div style="text-align: center; font-size: 9.5px; color: #9AA0A4; margin-top: 12px; letter-spacing: 0.1em;">— THANK YOU —</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: #7B8288; margin-right: auto;">{{ draft.fileLine }}</span>
+              <button sc-camel-on-click="{{ rescan }}" style="background: #FFFFFF; border: 1px solid #D8D2C5; border-radius: 8px; padding: 6px 11px; font-size: 12.5px; font-weight: 500;">Re-scan</button>
+              <button style="background: #FFFFFF; border: 1px solid #D8D2C5; border-radius: 8px; padding: 6px 11px; font-size: 12.5px; font-weight: 500;">Rotate</button>
+            </div>
+          </div>
+
+          <div style="flex: 1 1 380px; min-width: 0; padding: clamp(16px, 3vw, 26px);">
+            <sc-if value="{{ showConfidenceBanner }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; gap: 11px; background: #FBF2E0; border: 1px solid #EFD9AC; border-radius: 12px; padding: 12px 14px; margin-bottom: 18px;">
+                <span style="color: #8A5209; flex: none; display: grid; padding-top: 1px;">
+                  <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                </span>
+                <div>
+                  <div style="font-size: 13.5px; font-weight: 600; color: #6B3F07;">{{ confidenceTitle }}</div>
+                  <div style="font-size: 12.5px; color: #7A4B0C; margin-top: 2px; text-wrap: pretty;">{{ confidenceBody }}</div>
+                </div>
+              </div>
+            </sc-if>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px;">
+              <label style="display: block; grid-column: 1 / -1;">
+                <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: #6A7176;">Merchant <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0; text-transform: none; color: {{ conf.merchantColor }}; background: {{ conf.merchantBg }}; border-radius: 99px; padding: 2px 7px;">{{ conf.merchantLabel }}</span></span>
+                <input value="{{ draft.merchant }}" sc-camel-on-change="{{ onMerchant }}" style="margin-top: 7px; width: 100%; padding: 10px 12px; border: 1px solid {{ conf.merchantBorder }}; border-radius: 10px; background: #FBFAF7; font-size: 14px; outline: none;" style-focus="border-color: #0B6B57; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(11,107,87,.12);">
+              </label>
+
+              <label style="display: block;">
+                <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: #6A7176;">Total <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0; text-transform: none; color: {{ conf.totalColor }}; background: {{ conf.totalBg }}; border-radius: 99px; padding: 2px 7px;">{{ conf.totalLabel }}</span></span>
+                <input value="{{ draft.amount }}" sc-camel-on-change="{{ onAmount }}" style="margin-top: 7px; width: 100%; padding: 10px 12px; border: 1px solid {{ conf.totalBorder }}; border-radius: 10px; background: #FBFAF7; font-family: 'IBM Plex Mono', monospace; font-size: 14px; outline: none;" style-focus="border-color: #0B6B57; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(11,107,87,.12);">
+              </label>
+
+              <label style="display: block;">
+                <span style="display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: #6A7176;">Tax</span>
+                <input value="{{ draft.tax }}" sc-camel-on-change="{{ onTax }}" style="margin-top: 7px; width: 100%; padding: 10px 12px; border: 1px solid #E3DED3; border-radius: 10px; background: #FBFAF7; font-family: 'IBM Plex Mono', monospace; font-size: 14px; outline: none;" style-focus="border-color: #0B6B57; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(11,107,87,.12);">
+              </label>
+
+              <label style="display: block;">
+                <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: #6A7176;">Date <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0; text-transform: none; color: {{ conf.dateColor }}; background: {{ conf.dateBg }}; border-radius: 99px; padding: 2px 7px;">{{ conf.dateLabel }}</span></span>
+                <input value="{{ draft.date }}" sc-camel-on-change="{{ onDate }}" placeholder="MM-DD-YYYY" style="margin-top: 7px; width: 100%; padding: 10px 12px; border: 1px solid {{ conf.dateBorder }}; border-radius: 10px; background: #FBFAF7; font-family: 'IBM Plex Mono', monospace; font-size: 14px; outline: none;" style-focus="border-color: #0B6B57; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(11,107,87,.12);">
+              </label>
+
+              <label style="display: block;">
+                <span style="display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: #6A7176;">Payment</span>
+                <input value="{{ draft.payment }}" sc-camel-on-change="{{ onPayment }}" style="margin-top: 7px; width: 100%; padding: 10px 12px; border: 1px solid #E3DED3; border-radius: 10px; background: #FBFAF7; font-size: 14px; outline: none;" style-focus="border-color: #0B6B57; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(11,107,87,.12);">
+              </label>
+
+              <div style="grid-column: 1 / -1;">
+                <span style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: #6A7176;">Category <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 0; text-transform: none; color: {{ conf.catColor }}; background: {{ conf.catBg }}; border-radius: 99px; padding: 2px 7px;">{{ conf.catLabel }}</span></span>
+                <div style="margin-top: 8px; display: flex; gap: 7px; flex-wrap: wrap;">
+                  <sc-for list="{{ catChoices }}" as="k" hint-placeholder-count="4">
+                    <button sc-camel-on-click="{{ k.onClick }}" style="background: {{ k.bg }}; color: {{ k.fg }}; border: 1px solid {{ k.border }}; border-radius: 99px; padding: 7px 14px; font-size: 13px; font-weight: 500;">{{ k.name }}</button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <label style="display: block; grid-column: 1 / -1;">
+                <span style="display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: #6A7176;">Note</span>
+                <input value="{{ draft.note }}" sc-camel-on-change="{{ onNote }}" placeholder="What was this for?" style="margin-top: 7px; width: 100%; padding: 10px 12px; border: 1px solid #E3DED3; border-radius: 10px; background: #FBFAF7; font-size: 14px; outline: none;" style-focus="border-color: #0B6B57; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(11,107,87,.12);">
+              </label>
+            </div>
+
+            <button sc-camel-on-click="{{ toggleDeductible }}" style="margin-top: 16px; width: 100%; display: flex; align-items: center; gap: 12px; background: {{ deduct.bg }}; border: 1px solid {{ deduct.border }}; border-radius: 12px; padding: 12px 14px; text-align: left;">
+              <span style="width: 40px; height: 23px; border-radius: 99px; background: {{ deduct.trackBg }}; flex: none; padding: 3px; display: flex; justify-content: {{ deduct.justify }};">
+                <span style="width: 17px; height: 17px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 2px rgba(20,24,27,.25);"></span>
+              </span>
+              <span>
+                <span style="display: block; font-size: 13.5px; font-weight: 600;">Tax-deductible</span>
+                <span style="display: block; font-size: 12.5px; color: #6A7176; margin-top: 1px;">{{ deduct.note }}</span>
+              </span>
+            </button>
+
+            <div style="display: flex; gap: 9px; margin-top: 20px; flex-wrap: wrap;">
+              <button sc-camel-on-click="{{ saveDraft }}" style="flex: 2 1 160px; background: #0B6B57; color: #FFFFFF; border: 0; border-radius: 11px; padding: 12px 16px; font-size: 14.5px; font-weight: 600; box-shadow: 0 1px 2px rgba(11,107,87,.4);" style-hover="background: #085243;">{{ saveLabel }}</button>
+              <button sc-camel-on-click="{{ closeDetail }}" style="flex: 1 1 100px; background: #FFFFFF; border: 1px solid #E3DED3; border-radius: 11px; padding: 12px 16px; font-size: 14px; font-weight: 500;" style-hover="background: #F6F4EF;">Cancel</button>
+              <sc-if value="{{ canDeleteDraft }}" hint-placeholder-val="{{ false }}">
+                <button sc-camel-on-click="{{ deleteDraft }}" style="flex: none; background: #FFFFFF; border: 1px solid #E9D5D3; color: #B3261E; border-radius: 11px; padding: 12px; display: grid; place-items: center;" style-hover="background: #FBEFEE;" aria-label="Delete receipt">
+                  <svg width="17" height="17" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+  </x-dc>
+  <script type="text/x-dc" data-dc-script="" data-props="{&quot;monthlyBudget&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:3000,&quot;min&quot;:500,&quot;max&quot;:10000,&quot;step&quot;:100,&quot;unit&quot;:&quot;$&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Behaviour&quot;},&quot;lowConfidenceFlags&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
+const CATS = {
+  Meals:   { color: "#B4690E", tint: "#FBF2E0", border: "#F0DCB4" },
+  Expense: { color: "#0B6B57", tint: "#E6F0EC", border: "#C6DED7" },
+  Travel:  { color: "#2A5C8A", tint: "#E7EEF5", border: "#C7D8E8" },
+  Hygiene: { color: "#7A4B8F", tint: "#F1EAF4", border: "#DFCDE6" },
+};
+const CAT_NAMES = ["Meals", "Expense", "Travel", "Hygiene"];
+const CAT_BUDGET = { Meals: 520, Expense: 1400, Travel: 900, Hygiene: 180 };
+
+const SEED = [
+  { id: 1,  merchant: "Sightglass Coffee",      date: "09-12-2026", amount: 18.40,  tax: 1.52,  cat: "Meals",   ws: "personal", pay: "Visa ·· 4417", ded: false, conf: {}, items: [["Cortado x2","9.00"],["Almond croissant","6.50"],["Tip","1.38"]], addr: "270 7th St, San Francisco CA" },
+  { id: 2,  merchant: "Alaska Airlines",         date: "09-11-2026", amount: 412.60, tax: 31.20, cat: "Travel",  ws: "business", pay: "Amex ·· 1009", ded: true,  conf: {}, items: [["SFO-SEA 09/18","286.00"],["Seat 12A","45.00"],["Bag fee","50.40"]], addr: "Confirmation QJ4T2M" },
+  { id: 3,  merchant: "Walgreens #2841",         date: "09-10-2026", amount: 34.17,  tax: 2.82,  cat: "Hygiene", ws: "personal", pay: "Visa ·· 4417", ded: false, conf: {}, items: [["Toothpaste 2pk","8.99"],["Shampoo","12.49"],["Razor cartridges","9.87"]], addr: "1372 Market St, San Francisco CA" },
+  { id: 4,  merchant: "Kinkos Print & Ship",     date: "09-09-2026", amount: 96.85,  tax: 7.98,  cat: "",        ws: "business", pay: "Amex ·· 1009", ded: true,  conf: { merchant: "low", cat: "low" }, items: [["Color prints 240pp","62.40"],["Binding x3","18.00"],["Shipping","8.47"]], addr: "1967 Market St, San Francisco CA" },
+  { id: 5,  merchant: "Nopa",                    date: "09-08-2026", amount: 142.90, tax: 12.66, cat: "Meals",   ws: "business", pay: "Amex ·· 1009", ded: true,  conf: {}, items: [["Client dinner x3","118.00"],["Wine","18.00"],["Service","6.90"]], addr: "560 Divisadero St, San Francisco CA" },
+  { id: 6,  merchant: "Uber",                    date: "09-07-2026", amount: 27.35,  tax: 0.00,  cat: "Travel",  ws: "business", pay: "Amex ·· 1009", ded: true,  conf: { date: "low" }, items: [["UberX 6.2mi","23.10"],["Booking fee","2.75"],["Tip","1.50"]], addr: "Trip 8f21c" },
+  { id: 7,  merchant: "Whole Foods Market",      date: "09-06-2026", amount: 88.12,  tax: 4.20,  cat: "Meals",   ws: "personal", pay: "Visa ·· 4417", ded: false, conf: {}, items: [["Produce","31.44"],["Coffee beans","17.99"],["Pantry","34.49"]], addr: "399 4th St, San Francisco CA" },
+  { id: 8,  merchant: "Figma",                   date: "09-05-2026", amount: 45.00,  tax: 0.00,  cat: "Expense", ws: "business", pay: "Amex ·· 1009", ded: true,  conf: {}, items: [["Professional seat","45.00"]], addr: "Invoice FIG-88421" },
+  { id: 9,  merchant: "Chevron",                 date: "09-04-2026", amount: 61.24,  tax: 0.00,  cat: "Travel",  ws: "personal", pay: "Visa ·· 4417", ded: false, conf: {}, items: [["Regular 13.8gal","61.24"]], addr: "1500 Bryant St, San Francisco CA" },
+  { id: 10, merchant: "Rainbow Grocery",         date: "09-02-2026", amount: 23.86,  tax: 1.06,  cat: "Hygiene", ws: "personal", pay: "Cash",         ded: false, conf: { total: "low" }, items: [["Castile soap","11.50"],["Bar soap x3","7.30"],["Cotton rounds","4.00"]], addr: "1745 Folsom St, San Francisco CA" },
+  { id: 11, merchant: "Notion Labs",             date: "09-01-2026", amount: 120.00, tax: 0.00,  cat: "Expense", ws: "business", pay: "Amex ·· 1009", ded: true,  conf: {}, items: [["Team plan 8 seats","120.00"]], addr: "Invoice NTN-20946" },
+  { id: 12, merchant: "Blue Bottle Coffee",      date: "08-29-2026", amount: 12.75,  tax: 1.05,  cat: "Meals",   ws: "personal", pay: "Visa ·· 4417", ded: false, conf: {}, items: [["Drip x2","8.50"],["Pastry","4.25"]], addr: "66 Mint St, San Francisco CA" },
+  { id: 13, merchant: "Office Depot",            date: "08-27-2026", amount: 158.43, tax: 13.06, cat: "Expense", ws: "business", pay: "Amex ·· 1009", ded: true,  conf: {}, items: [["Desk chair mat","79.99"],["Label printer","58.00"],["Paper 5rm","20.44"]], addr: "55 Chestnut St, San Francisco CA" },
+  { id: 14, merchant: "Hotel Kabuki",            date: "08-24-2026", amount: 384.00, tax: 52.10, cat: "",        ws: "business", pay: "Amex ·· 1009", ded: true,  conf: { cat: "low", merchant: "low" }, items: [["Room 2 nights","300.00"],["City tax","31.90"],["Parking","52.10"]], addr: "1625 Post St, San Francisco CA" },
+];
+
+const MONTH_HISTORY = [
+  { label: "APR", total: 1842 },
+  { label: "MAY", total: 2310 },
+  { label: "JUN", total: 1976 },
+  { label: "JUL", total: 2688 },
+  { label: "AUG", total: 2104 },
+];
+
+const PENDING = {
+  merchant: "Tartine Bakery", date: "09-14-2026", amount: "31.85", tax: "2.63",
+  cat: "", pay: "Visa ·· 4417", ded: false, note: "",
+  conf: { merchant: "low", cat: "low", total: "ok", date: "ok" },
+  items: [["Country loaf","12.00"],["Morning bun x2","11.00"],["Latte","6.22"]],
+  addr: "600 Guerrero St, San Francisco CA",
+  file: "IMG_2049.HEIC · 2.4 MB · just now",
+};
+
+class Component extends DCLogic {
+  state = {
+    receipts: SEED,
+    ws: "personal",
+    query: "",
+    filter: "All",
+    view: "table",
+    sortKey: "date",
+    sortDir: "desc",
+    uploadOpen: false,
+    uploadMode: "drop",
+    extracting: false,
+    extractStep: 0,
+    detailOpen: false,
+    draft: null,
+    draftId: null,
+    toast: "",
+    canUndo: false,
+    pendingDelete: null,
+  };
+
+  componentWillUnmount() { clearInterval(this._timer); clearTimeout(this._toastTimer); }
+
+  money(n) {
+    const v = Number(n) || 0;
+    return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  moneyShort(n) {
+    return "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
+  }
+  cat(name) { return CATS[name] || { color: "#6A7176", tint: "#F1EEE7", border: "#E3DED3" }; }
+
+  setToast(text, canUndo) {
+    clearTimeout(this._toastTimer);
+    this.setState({ toast: text, canUndo: !!canUndo });
+    this._toastTimer = setTimeout(() => this.setState({ toast: "", canUndo: false, pendingDelete: null }), 6000);
+  }
+
+  startExtract = () => {
+    this.setState({ extracting: true, extractStep: 0 });
+    clearInterval(this._timer);
+    this._timer = setInterval(() => {
+      const step = this.state.extractStep + 1;
+      if (step > 4) {
+        clearInterval(this._timer);
+        this.setState({
+          extracting: false, uploadOpen: false, detailOpen: true, draftId: null,
+          draft: { ...PENDING, note: "" },
+        });
+      } else {
+        this.setState({ extractStep: step });
+      }
+    }, 750);
+  };
+
+  openReceipt(r) {
+    this.setState({
+      detailOpen: true, draftId: r.id,
+      draft: {
+        merchant: r.merchant, date: r.date, amount: r.amount.toFixed(2), tax: r.tax.toFixed(2),
+        cat: r.cat, pay: r.pay, ded: r.ded, note: r.note || "", conf: r.conf || {},
+        items: r.items, addr: r.addr, file: "receipt-" + r.id + ".jpg · stored " + r.date,
+      },
+    });
+  }
+
+  saveDraft = () => {
+    const d = this.state.draft;
+    if (!d) return;
+    const amount = Number(String(d.amount).replace(/[^0-9.]/g, "")) || 0;
+    const tax = Number(String(d.tax).replace(/[^0-9.]/g, "")) || 0;
+    if (this.state.draftId) {
+      this.setState({
+        receipts: this.state.receipts.map((r) => r.id === this.state.draftId
+          ? { ...r, merchant: d.merchant, date: d.date, amount, tax, cat: d.cat, pay: d.pay, ded: d.ded, note: d.note, conf: {} }
+          : r),
+        detailOpen: false, draft: null, draftId: null,
+      });
+      this.setToast("Changes saved to " + d.merchant, false);
+    } else {
+      const id = Math.max(...this.state.receipts.map((r) => r.id)) + 1;
+      this.setState({
+        receipts: [{ id, merchant: d.merchant, date: d.date, amount, tax, cat: d.cat, ws: this.state.ws,
+          pay: d.pay, ded: d.ded, note: d.note, conf: {}, items: d.items, addr: d.addr }, ...this.state.receipts],
+        detailOpen: false, draft: null, draftId: null,
+      });
+      this.setToast(d.merchant + " filed · " + this.money(amount), false);
+    }
+  };
+
+  removeReceipt(r) {
+    this.setState({ receipts: this.state.receipts.filter((x) => x.id !== r.id), pendingDelete: r });
+    this.setToast("Deleted " + r.merchant + " · " + this.money(r.amount), true);
+  }
+
+  undoDelete = () => {
+    const r = this.state.pendingDelete;
+    if (!r) return;
+    clearTimeout(this._toastTimer);
+    this.setState({ receipts: [r, ...this.state.receipts], pendingDelete: null });
+    this.setToast("Restored " + r.merchant, false);
+  };
+
+  sortBy(key) {
+    const sameKey = this.state.sortKey === key;
+    this.setState({ sortKey: key, sortDir: sameKey ? (this.state.sortDir === "asc" ? "desc" : "asc") : (key === "merchant" || key === "cat" ? "asc" : "desc") });
+  }
+
+  patch(k, v) { this.setState({ draft: { ...this.state.draft, [k]: v } }); }
+
+  renderVals() {
+    const s = this.state;
+    const budgetCap = this.props.monthlyBudget ?? 3000;
+    const flags = this.props.lowConfidenceFlags ?? true;
+    const isBiz = s.ws === "business";
+
+    const scoped = s.receipts.filter((r) => r.ws === s.ws);
+    const q = s.query.trim().toLowerCase();
+    let rows = scoped.filter((r) => {
+      if (s.filter === "Needs review" && r.cat) return false;
+      if (s.filter !== "All" && s.filter !== "Needs review" && r.cat !== s.filter) return false;
+      if (!q) return true;
+      return (r.merchant + " " + r.cat + " " + r.date + " " + r.amount.toFixed(2) + " " + r.pay).toLowerCase().includes(q);
+    });
+    const dir = s.sortDir === "asc" ? 1 : -1;
+    const key = s.sortKey;
+    rows = rows.slice().sort((a, b) => {
+      if (key === "amount") return (a.amount - b.amount) * dir;
+      if (key === "date") {
+        const ad = a.date.slice(6) + a.date.slice(0, 2) + a.date.slice(3, 5);
+        const bd = b.date.slice(6) + b.date.slice(0, 2) + b.date.slice(3, 5);
+        return ad.localeCompare(bd) * dir;
+      }
+      if (key === "cat") return (a.cat || "zzz").localeCompare(b.cat || "zzz") * dir;
+      return a.merchant.localeCompare(b.merchant) * dir;
+    });
+
+    const thisMonth = scoped.filter((r) => r.date.startsWith("09-"));
+    const monthTotal = thisMonth.reduce((t, r) => t + r.amount, 0);
+    const lastMonthTotal = scoped.filter((r) => r.date.startsWith("08-")).reduce((t, r) => t + r.amount, 0) + (isBiz ? 1680 : 640);
+    const delta = lastMonthTotal ? ((monthTotal - lastMonthTotal) / lastMonthTotal) * 100 : 0;
+    const dedRows = thisMonth.filter((r) => r.ded);
+    const dedTotal = dedRows.reduce((t, r) => t + r.amount, 0);
+    const missing = scoped.filter((r) => !r.cat);
+    const pct = Math.round((monthTotal / budgetCap) * 100);
+
+    const arrow = (k) => (s.sortKey === k ? (s.sortDir === "asc" ? "↑" : "↓") : "");
+    const chipNames = ["All", ...CAT_NAMES, "Needs review"];
+    const chips = chipNames.map((name) => {
+      const active = s.filter === name;
+      const c = CATS[name];
+      const accent = name === "Needs review" ? { color: "#8A5209", tint: "#FBF2E0", border: "#EFD9AC" } : c;
+      return {
+        label: name === "Needs review" ? "Needs review · " + missing.length : name,
+        onClick: () => this.setState({ filter: name }),
+        bg: active ? (accent ? accent.tint : "#14181B") : "#FFFFFF",
+        fg: active ? (accent ? accent.color : "#FFFFFF") : "#4A5258",
+        border: active ? (accent ? accent.border : "#14181B") : "#E3DED3",
+      };
+    });
+
+    const catRows = CAT_NAMES.map((name) => {
+      const spent = thisMonth.filter((r) => r.cat === name).reduce((t, r) => t + r.amount, 0);
+      const budget = CAT_BUDGET[name] * (isBiz ? 1.6 : 1);
+      const over = spent > budget;
+      return {
+        name, color: this.cat(name).color,
+        spent: this.moneyShort(spent), budget: this.moneyShort(budget),
+        width: Math.min(100, (spent / budget) * 100).toFixed(1) + "%",
+        textColor: over ? "#B3261E" : "#7B8288",
+      };
+    });
+
+    const history = [...MONTH_HISTORY.map((m) => ({ ...m, total: m.total * (isBiz ? 1.5 : 0.62) })), { label: "SEP", total: monthTotal, current: true }];
+    const maxMonth = Math.max(...history.map((m) => m.total), budgetCap * 0.6);
+    const months = history.map((m) => ({
+      label: m.label,
+      short: "$" + Math.round(m.total / 100) / 10 + "k",
+      height: Math.max(8, (m.total / maxMonth) * 72) + "px",
+      color: m.current ? "#0B6B57" : "#DCD6C9",
+      valueColor: m.current ? "#0B6B57" : "#9AA0A4",
+    }));
+
+    const stepLabels = ["Detecting receipt edges", "Reading text (OCR)", "Matching merchant", "Classifying category"];
+    const extractSteps = stepLabels.map((label, i) => {
+      const done = s.extractStep > i;
+      const active = s.extractStep === i;
+      return {
+        label, color: done ? "#14181B" : active ? "#4A5258" : "#9AA0A4",
+        dotBg: done ? "#0B6B57" : active ? "#CFE3DB" : "#F1EEE7",
+        dotFg: done ? "#FFFFFF" : "transparent",
+      };
+    });
+
+    const d = s.draft;
+    const dAmount = d ? Number(String(d.amount).replace(/[^0-9.]/g, "")) || 0 : 0;
+    const dTax = d ? Number(String(d.tax).replace(/[^0-9.]/g, "")) || 0 : 0;
+    const dConf = (field) => {
+      const low = flags && d && d.conf && d.conf[field] === "low";
+      return {
+        border: low ? "#EFD9AC" : "#E3DED3",
+        label: low ? "check" : "92%",
+        color: low ? "#8A5209" : "#6A7176",
+        bg: low ? "#FBF2E0" : "#F1EEE7",
+      };
+    };
+    const cm = dConf("merchant"), ct = dConf("total"), cd = dConf("date"), cc = dConf("cat");
+    const lowCount = d && flags ? Object.values(d.conf || {}).filter((v) => v === "low").length : 0;
+
+    const catChoices = CAT_NAMES.map((name) => {
+      const active = d && d.cat === name;
+      const c = this.cat(name);
+      return {
+        name, onClick: () => this.patch("cat", name),
+        bg: active ? c.tint : "#FFFFFF", fg: active ? c.color : "#4A5258", border: active ? c.border : "#E3DED3",
+      };
+    });
+
+    const onTab = (on) => ({ bg: on ? "#FFFFFF" : "transparent", fg: on ? "#14181B" : "#6A7176", shadow: on ? "0 1px 2px rgba(20,24,27,.14)" : "none" });
+    const wsP = onTab(!isBiz), wsB = onTab(isBiz);
+    const vT = onTab(s.view === "table"), vG = onTab(s.view === "grid");
+    const mD = onTab(s.uploadMode === "drop"), mC = onTab(s.uploadMode === "camera");
+
+    return {
+      nav: buildNav(s),
+      navDashboard, navReceipts, navReview, navCategories, navReports, navSettings,
+      greeting: isBiz ? "Business expenses" : "Good evening, Maya",
+      subline: isBiz
+        ? "Employee and company receipts, filed and ready for the accountant."
+        : "Every receipt you've scanned, searchable down to the line item.",
+      query: s.query,
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      setPersonal: () => this.setState({ ws: "personal", filter: "All" }),
+      setBusiness: () => this.setState({ ws: "business", filter: "All" }),
+      wsPersonalBg: wsP.bg, wsPersonalFg: wsP.fg, wsPersonalShadow: wsP.shadow,
+      wsBusinessBg: wsB.bg, wsBusinessFg: wsB.fg, wsBusinessShadow: wsB.shadow,
+
+      stats: {
+        total: this.money(monthTotal),
+        deltaLabel: (delta >= 0 ? "+" : "") + delta.toFixed(0) + "% vs August · " + thisMonth.length + " receipts",
+        deltaColor: delta > 0 ? "#B4690E" : "#0B6B57",
+        budgetPct: pct, budgetCap: this.moneyShort(budgetCap),
+        budgetWidth: Math.min(100, pct) + "%",
+        budgetColor: pct > 100 ? "#B3261E" : pct > 80 ? "#B4690E" : "#0B6B57",
+        budgetNote: pct > 100 ? this.money(monthTotal - budgetCap) + " over cap" : this.money(budgetCap - monthTotal) + " left this month",
+        deductible: this.money(dedTotal),
+        deductibleNote: dedRows.length + " of " + thisMonth.length + " receipts marked deductible",
+        deductibleWidth: (monthTotal ? Math.min(100, (dedTotal / monthTotal) * 100) : 0).toFixed(0) + "%",
+      },
+      attention: {
+        count: missing.length,
+        note: missing.length ? "receipts have no category yet" : "everything is categorised",
+        btnLabel: missing.length ? "Review now" : "All clear",
+        cardBg: missing.length ? "#FBF2E0" : "#FFFFFF",
+        cardBorder: missing.length ? "#EFD9AC" : "#E3DED3",
+        labelColor: missing.length ? "#8A5209" : "#6A7176",
+        btnBorder: missing.length ? "#E0BE7E" : "#E3DED3",
+        btnColor: missing.length ? "#6B3F07" : "#6A7176",
+      },
+      reviewAttention: () => this.setState({ filter: "Needs review", query: "" }),
+
+      chips,
+      resultLabel: rows.length + (rows.length === 1 ? " receipt" : " receipts") + " · " + this.money(rows.reduce((t, r) => t + r.amount, 0)),
+      isTable: s.view === "table" && rows.length > 0,
+      isGrid: s.view === "grid" && rows.length > 0,
+      isEmpty: rows.length === 0,
+      setTable: () => this.setState({ view: "table" }),
+      setGrid: () => this.setState({ view: "grid" }),
+      tableBg: vT.bg, tableFg: vT.fg, tableShadow: vT.shadow,
+      gridBg: vG.bg, gridFg: vG.fg, gridShadow: vG.shadow,
+      clearFilters: () => this.setState({ query: "", filter: "All" }),
+
+      sortByMerchant: () => this.sortBy("merchant"),
+      sortByDate: () => this.sortBy("date"),
+      sortByCategory: () => this.sortBy("cat"),
+      sortByAmount: () => this.sortBy("amount"),
+      arrowMerchant: arrow("merchant"), arrowDate: arrow("date"),
+      arrowCategory: arrow("cat"), arrowAmount: arrow("amount"),
+
+      rows: rows.map((r) => {
+        const c = this.cat(r.cat);
+        return {
+          merchant: r.merchant,
+          merchantUpper: r.merchant.toUpperCase(),
+          meta: r.pay + (r.ded ? " · deductible" : ""),
+          dateFmt: r.date,
+          payment: r.pay,
+          catLabel: r.cat || "Uncategorised",
+          catColor: c.color, tint: c.tint, tintBorder: c.border,
+          amountFmt: this.money(r.amount),
+          lineOne: r.items[0] ? r.items[0][0] + "  " + r.items[0][1] : "",
+          lineTwo: r.items[1] ? r.items[1][0] + "  " + r.items[1][1] : "",
+          onOpen: () => this.openReceipt(r),
+          onDelete: (e) => { e.stopPropagation(); this.removeReceipt(r); },
+        };
+      }),
+
+      catRows, months,
+      exportNote: dedRows.length + " deductible receipts this month (" + this.money(dedTotal) + "). Export a CSV for your accountant or a PDF pack with the images attached.",
+      exportAll: () => this.setToast("Exported " + scoped.length + " receipts · papertrail-" + s.ws + "-sep2026.csv", false),
+
+      toast: !!s.toast, toastText: s.toast, canUndo: s.canUndo,
+      dismissToast: () => this.setState({ toast: "", canUndo: false }),
+      undoDelete: this.undoDelete,
+
+      uploadOpen: s.uploadOpen,
+      openUpload: () => this.setState({ uploadOpen: true, uploadMode: "drop", extracting: false, extractStep: 0 }),
+      closeUpload: () => { clearInterval(this._timer); this.setState({ uploadOpen: false, extracting: false }); },
+      uploadSubtitle: s.extracting ? "Hold tight — this takes a few seconds" : isBiz ? "Filed to Business · tagged deductible by default" : "Filed to Personal",
+      showPicker: s.uploadOpen && !s.extracting,
+      extracting: s.extracting,
+      isDropMode: s.uploadMode === "drop", isCamMode: s.uploadMode === "camera",
+      setDropMode: () => this.setState({ uploadMode: "drop" }),
+      setCamMode: () => this.setState({ uploadMode: "camera" }),
+      dropTabBg: mD.bg, dropTabFg: mD.fg, dropTabShadow: mD.shadow,
+      camTabBg: mC.bg, camTabFg: mC.fg, camTabShadow: mC.shadow,
+      startExtract: this.startExtract,
+      extractStatus: (stepLabels[Math.min(s.extractStep, 3)] || "Finishing up") + "…",
+      extractWidth: Math.min(100, (s.extractStep / 4) * 100 + 8) + "%",
+      extractSteps,
+
+      detailOpen: s.detailOpen,
+      closeDetail: () => this.setState({ detailOpen: false, draft: null, draftId: null }),
+      detailTitle: s.draftId ? "Receipt detail" : "Verify extracted data",
+      detailSubtitle: s.draftId ? "Edit any field — changes save to your filing cabinet." : "We filled these in from the scan. Check the flagged fields before saving.",
+      saveLabel: s.draftId ? "Save changes" : "Looks right — file it",
+      canDeleteDraft: !!s.draftId,
+      deleteDraft: () => {
+        const r = s.receipts.find((x) => x.id === s.draftId);
+        this.setState({ detailOpen: false, draft: null, draftId: null });
+        if (r) this.removeReceipt(r);
+      },
+      rescan: () => { this.setState({ detailOpen: false, draft: null, draftId: null, uploadOpen: true, uploadMode: "camera" }); },
+
+      draft: d ? {
+        merchant: d.merchant, merchantUpper: (d.merchant || "").toUpperCase(),
+        date: d.date, amount: d.amount, tax: d.tax, payment: d.pay, note: d.note,
+        address: d.addr,
+        items: (d.items || []).map((it) => ({ name: it[0], price: it[1] })),
+        subtotalFmt: this.money(dAmount - dTax), taxFmt: this.money(dTax), totalFmt: this.money(dAmount),
+        dateLine: "DATE " + d.date + "  TIME 18:42",
+        payLine: "PAID " + d.pay,
+        fileLine: d.file || "IMG_2049.HEIC · 2.4 MB",
+      } : null,
+      conf: {
+        merchantBorder: cm.border, merchantLabel: cm.label, merchantColor: cm.color, merchantBg: cm.bg,
+        totalBorder: ct.border, totalLabel: ct.label, totalColor: ct.color, totalBg: ct.bg,
+        dateBorder: cd.border, dateLabel: cd.label, dateColor: cd.color, dateBg: cd.bg,
+        catLabel: d && !d.cat ? "required" : cc.label, catColor: cc.color, catBg: cc.bg,
+      },
+      showConfidenceBanner: lowCount > 0,
+      confidenceTitle: lowCount + (lowCount === 1 ? " field needs a second look" : " fields need a second look"),
+      confidenceBody: "The scan was blurry in places. Fields marked “check” came back below 80% confidence.",
+      catChoices,
+      deduct: {
+        bg: d && d.ded ? "#E6F0EC" : "#FBFAF7",
+        border: d && d.ded ? "#C6DED7" : "#E3DED3",
+        trackBg: d && d.ded ? "#0B6B57" : "#C9C2B4",
+        justify: d && d.ded ? "flex-end" : "flex-start",
+        note: d && d.ded ? "Counts toward your deductible total" : "Personal spending — not claimed",
+      },
+      toggleDeductible: () => this.patch("ded", !(d && d.ded)),
+      onMerchant: (e) => this.patch("merchant", e.target.value),
+      onAmount: (e) => this.patch("amount", e.target.value),
+      onTax: (e) => this.patch("tax", e.target.value),
+      onDate: (e) => this.patch("date", e.target.value),
+      onPayment: (e) => this.patch("pay", e.target.value),
+      onNote: (e) => this.patch("note", e.target.value),
+    };
+  }
+}
+  </script>
+</body>
+</html>
